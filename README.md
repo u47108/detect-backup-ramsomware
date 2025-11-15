@@ -8,6 +8,8 @@ Este servicio monitorea backups exportados desde Cloud SQL (PostgreSQL configura
 
 ## 🏗️ Arquitectura
 
+### Diagrama de Arquitectura
+
 ![Diagrama de Arquitectura](diagrams/architecture.png)
 
 El diagrama muestra el flujo completo del sistema:
@@ -21,6 +23,155 @@ El diagrama muestra el flujo completo del sistema:
    - Si está comprometida, restaura backup anterior
 
 Para más detalles sobre la arquitectura, ver [diagrams/README.md](diagrams/README.md).
+
+### Diagrama de Secuencia
+
+El siguiente diagrama de secuencia muestra el flujo detallado de interacciones entre los componentes:
+
+```plantuml
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 60
+
+title Diagrama de Secuencia - Detección de Ransomware en Backups
+
+actor Usuario as User
+participant "Cloud SQL\nPostgreSQL" as CloudSQL
+participant "Cloud Storage\n(Privado)" as CloudStorage
+participant "Cloud DLP\nAPI" as CloudDLP
+participant "Detect Backup\nRansomware Service\n(Cloud Run)" as Service
+participant "Cloud Monitoring" as Monitoring
+participant "Alert System\n(Sistema de Alertas)" as Alerts
+database "PostgreSQL\nMonitoring DB" as MonDB
+
+== Inicio del Proceso ==
+
+User -> CloudSQL: Iniciar backup automático
+activate CloudSQL
+
+CloudSQL -> CloudStorage: Exportar datos a Cloud Storage
+activate CloudStorage
+CloudStorage --> CloudSQL: Backup exportado exitosamente
+deactivate CloudStorage
+
+== Verificación y Detección ==
+
+CloudSQL -> Service: Backup disponible en Cloud Storage
+activate Service
+
+Service -> CloudStorage: Verificar backup disponible
+activate CloudStorage
+CloudStorage --> Service: Backup confirmado (gs://bucket/path)
+deactivate CloudStorage
+
+Service -> MonDB: Registrar backup en BD de monitoreo
+activate MonDB
+MonDB --> Service: Backup registrado
+deactivate MonDB
+
+Service -> CloudDLP: Crear DLP Job para inspección
+activate CloudDLP
+CloudDLP --> Service: Job creado (job-id)
+note right: Inspecciona si datos sensibles\nestán encriptados
+
+Service -> CloudStorage: Enviar datos exportados para inspección
+activate CloudStorage
+CloudStorage -> CloudDLP: Datos para inspección
+deactivate CloudStorage
+
+CloudDLP -> CloudDLP: Inspeccionar datos en busca\nde patrones sospechosos
+note right: Detecta encriptación de:\n- Emails\n- Datos bancarios\n- Tarjetas de crédito
+
+alt [Detecta encriptación o cambios sospechosos]
+
+    CloudDLP --> Service: Ransomware detectado\n(Findings encontrados)
+    
+    == Sistema de Alertas ==
+    
+    Service -> Alerts: Generar alerta sobre posible ataque\n(ransomware)
+    activate Alerts
+    
+    Alerts -> Monitoring: Notificar sobre posible manipulación\nde datos
+    activate Monitoring
+    
+    Monitoring -> CloudSQL: Revisar logs de actividad\nen la base de datos
+    activate CloudSQL
+    
+    CloudSQL -> CloudSQL: Verificar cambios en la base de datos
+    
+    alt [Detecta cambios inesperados]
+    
+        CloudSQL --> Monitoring: Confirmar que la base de datos\nestá comprometida
+        deactivate CloudSQL
+        
+        Monitoring --> Alerts: Confirmar que la base de datos\nestá comprometida
+        
+        Alerts -> Service: Base de datos comprometida\nconfirmada
+        deactivate Alerts
+        deactivate Monitoring
+        
+        == Restauración ==
+        
+        Service -> CloudStorage: Cancelar el backup
+        activate CloudStorage
+        CloudStorage --> Service: Backup cancelado
+        deactivate CloudStorage
+        
+        Service -> CloudStorage: Restaurar backup anterior
+        activate CloudStorage
+        CloudStorage -> CloudSQL: Restaurar backup anterior\n(no completar backup actual)
+        deactivate CloudStorage
+        activate CloudSQL
+        CloudSQL --> Service: Backup anterior restaurado
+        deactivate CloudSQL
+        
+        Service -> MonDB: Registrar restauración
+        activate MonDB
+        MonDB --> Service: Restauración registrada
+        deactivate MonDB
+        
+    else [No se detectan cambios]
+    
+        CloudSQL --> Monitoring: Confirmar que los datos\nno están comprometidos
+        deactivate CloudSQL
+        
+        Monitoring --> Alerts: Confirmar que los datos\nno están comprometidos
+        deactivate Monitoring
+        deactivate Alerts
+        
+        Service -> MonDB: Registrar detección sin compromiso
+        activate MonDB
+        MonDB --> Service: Registro completado
+        deactivate MonDB
+        
+    end
+
+else [No se detecta ransomware]
+
+    CloudDLP --> Service: Backup sin indicadores\nde ransomware
+    deactivate CloudDLP
+    
+    Service -> MonDB: Registrar backup exitoso
+    activate MonDB
+    MonDB --> Service: Backup registrado como seguro
+    deactivate MonDB
+
+end
+
+== Finalización ==
+
+Service --> User: Backup completado\nResultado: [Ransomware detectado: Sí/No]\n[Database comprometida: Sí/No]\n[Backup restaurado: Sí/No]
+deactivate Service
+
+@enduml
+```
+
+**Visualización del diagrama PlantUML:**
+- Puedes visualizar este diagrama usando [PlantUML Online](http://www.plantuml.com/plantuml/uml/) copiando el contenido de [`diagrams/sequence.puml`](diagrams/sequence.puml)
+- O instala PlantUML localmente y genera imágenes desde el archivo `.puml`
 
 ### Flujo del Sistema
 
