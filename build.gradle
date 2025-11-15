@@ -1,0 +1,119 @@
+plugins {
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.5'
+    id 'java'
+    id 'jacoco'
+}
+
+group = 'com.example'
+version = '1.0.0'
+sourceCompatibility = '21'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+    // Spring Boot Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    
+    // Spring Boot Data JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    
+    // PostgreSQL Driver
+    implementation 'org.postgresql:postgresql:42.7.4'
+    
+    // Spring Cloud GCP
+    implementation 'com.google.cloud:spring-cloud-gcp-starter-storage:5.2.0'
+    implementation 'com.google.cloud:spring-cloud-gcp-starter-pubsub:5.2.0'
+    implementation 'com.google.cloud:spring-cloud-gcp-starter-sql-postgresql:5.2.0'
+    
+    // Google Cloud Libraries
+    implementation 'com.google.cloud:google-cloud-storage:2.34.0'
+    implementation 'com.google.cloud:google-cloud-pubsub:1.130.2'
+    implementation 'com.google.cloud:google-cloud-dlp:3.49.0'
+    implementation 'com.google.cloud:google-cloud-monitoring:3.39.0'
+    
+    // Spring Boot Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // Spring Boot Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Jackson for JSON processing
+    implementation 'com.fasterxml.jackson.databind:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // Apache Commons for file operations
+    implementation 'org.apache.commons:commons-compress:1.26.0'
+    
+    // Liquibase for database migrations
+    implementation 'org.liquibase:liquibase-core:4.27.0'
+    
+    // Test Dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.h2database:h2:2.2.224'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+    
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/DetectBackupRansomwareApplication.class',
+                '**/config/**',
+                '**/dto/**'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80
+            }
+        }
+    }
+    
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/DetectBackupRansomwareApplication.class',
+                '**/config/**',
+                '**/dto/**'
+            ]))
+        }))
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

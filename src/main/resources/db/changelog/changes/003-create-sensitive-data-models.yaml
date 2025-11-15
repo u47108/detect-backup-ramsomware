@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-sensitive-data-models
+      author: detect-backup-ransomware
+      changes:
+        - createTable:
+            tableName: sensitive_data_models
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: data_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: table_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: column_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: detection_query
+                  type: TEXT
+              - column:
+                  name: dlp_info_type
+                  type: VARCHAR(100)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+                    defaultValueBoolean: true
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_sensitive_data_type
+            tableName: sensitive_data_models
+            columns:
+              - column:
+                  name: data_type
+        - createIndex:
+            indexName: idx_sensitive_data_active
+            tableName: sensitive_data_models
+            columns:
+              - column:
+                  name: active
+

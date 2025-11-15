@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: detect-backup-ransomware-postgres
+    environment:
+      POSTGRES_DB: backup_monitoring_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - detect-backup-network
+
+  liquibase:
+    image: liquibase/liquibase:latest
+    container_name: detect-backup-ransomware-liquibase
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - --changeLogFile=/liquibase/changelog/db.changelog-master.yaml
+      - --url=jdbc:postgresql://postgres:5432/backup_monitoring_db
+      - --username=postgres
+      - --password=postgres123
+      - --driver=org.postgresql.Driver
+      - update
+    volumes:
+      - ./src/main/resources/db:/liquibase/changelog
+      - ./src/main/resources/db/changelog:/liquibase/changelog/changes
+    networks:
+      - detect-backup-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: detect-backup-ransomware-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: backup_monitoring_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+      GCS_BACKUP_BUCKET: backup-bucket
+      DLP_ENABLED: "false"
+      ALERTS_ENABLED: "true"
+      PUBSUB_ENABLED: "false"
+      PUBSUB_SUBSCRIPTION: backup-request-subscription
+    ports:
+      - "8081:8080"
+    networks:
+      - detect-backup-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  detect-backup-network:
+    driver: bridge
+

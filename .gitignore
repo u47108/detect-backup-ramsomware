@@ -1,0 +1,44 @@
+# Gradle
+.gradle/
+build/
+bin/
+out/
+
+# IDE
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+
+# Application
+application-local.properties
+application-*.local.properties
+
+# Test results
+test-results/
+*.log
+
+# Coverage
+jacocoHtml/
+*.exec
+
+# Docker
+*.log
+

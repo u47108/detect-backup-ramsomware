@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-backup-records
+      author: detect-backup-ransomware
+      changes:
+        - createTable:
+            tableName: backup_records
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: backup_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: database_instance
+                  type: VARCHAR(255)
+              - column:
+                  name: database_name
+                  type: VARCHAR(100)
+              - column:
+                  name: backup_location
+                  type: VARCHAR(500)
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ransomware_detected
+                  type: BOOLEAN
+              - column:
+                  name: threat_details
+                  type: TEXT
+              - column:
+                  name: database_compromised
+                  type: BOOLEAN
+              - column:
+                  name: previous_backup_restored
+                  type: BOOLEAN
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completed_at
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_backup_created_at
+            tableName: backup_records
+            columns:
+              - column:
+                  name: created_at
+        - createIndex:
+            indexName: idx_backup_status
+            tableName: backup_records
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_backup_ransomware_detected
+            tableName: backup_records
+            columns:
+              - column:
+                  name: ransomware_detected
+

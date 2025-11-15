@@ -1,0 +1,103 @@
+graph TB
+    subgraph "Usuario/Sistema"
+        USER[Usuario/Sistema<br/>Inicia Backup Automático]
+    end
+    
+    subgraph "Cloud SQL"
+        CSQL[PostgreSQL 14<br/>Private Service Connect]
+        EXPORT[Export Backup<br/>Cloud SQL Admin API]
+        USER -->|Solicita backup| CSQL
+        CSQL -->|Exporta| EXPORT
+    end
+    
+    subgraph "Cloud Storage"
+        GCS[Bucket Privado<br/>backups/]
+        BACKUP[Backup Exportado<br/>.sql.gz]
+        EXPORT -->|gs://bucket/backups/...| GCS
+        GCS --> BACKUP
+    end
+    
+    subgraph "Cloud Run Service"
+        CR[Detect Backup Ransomware<br/>Java 21 + Spring Boot 3.5.7]
+        
+        subgraph "Procesamiento"
+            VERIFY[Verificar Backup<br/>Cloud Storage]
+            DLP_JOB[DLP Job Service<br/>Crear Job]
+            DETECT[Ransomware Detection<br/>Analizar Resultados]
+            ALERT[Alert Service<br/>Cloud Monitoring]
+            VERIFY_DB[Database Verification<br/>Comparar Backups]
+            RESTORE[Backup Restoration<br/>Restaurar Anterior]
+        end
+        
+        CR --> VERIFY
+        VERIFY --> DLP_JOB
+        DLP_JOB --> DETECT
+        DETECT -->|Si detecta| ALERT
+        ALERT --> VERIFY_DB
+        VERIFY_DB -->|Si comprometida| RESTORE
+    end
+    
+    subgraph "Cloud DLP"
+        DLP_API[DLP API<br/>Inspección de Datos]
+        DLP_INSPECT[Inspeccionar Backup<br/>Datos Sensibles Encriptados]
+        DLP_JOB -->|Crear Job| DLP_API
+        BACKUP -->|Inspeccionar| DLP_INSPECT
+        DLP_API --> DLP_INSPECT
+        DLP_INSPECT -->|Resultados| DETECT
+    end
+    
+    subgraph "Cloud Monitoring"
+        MONITOR[Cloud Monitoring<br/>Métricas y Alertas]
+        ALERT -->|Generar Alerta| MONITOR
+    end
+    
+    subgraph "PostgreSQL Monitoring DB"
+        MON_DB[(PostgreSQL 14<br/>backup_monitoring_db)]
+        RECORDS[backup_records<br/>sensitive_data_models]
+        MON_DB --> RECORDS
+        CR -->|Registrar| MON_DB
+    end
+    
+    subgraph "Pub/Sub Opcional"
+        PS_TOPIC[Topic<br/>backup-request-topic]
+        PS_SUB[Subscription<br/>backup-request-subscription]
+        PS_TOPIC --> PS_SUB
+        PS_SUB -.->|Mensaje| CR
+    end
+    
+    subgraph "Flujo de Detección"
+        FLOW1[1. Backup Exportado a Cloud Storage]
+        FLOW2[2. Verificar Backup Disponible]
+        FLOW3[3. Crear DLP Job para Inspección]
+        FLOW4[4. Analizar si Datos Sensibles Encriptados]
+        FLOW5[5. Si Detecta Ransomware:<br/>- Generar Alerta<br/>- Verificar Cambios en DB]
+        FLOW6[6. Si DB Comprometida:<br/>- Cancelar Backup Actual<br/>- Restaurar Backup Anterior]
+        FLOW7[7. Confirmar Resultado]
+        
+        FLOW1 --> FLOW2
+        FLOW2 --> FLOW3
+        FLOW3 --> FLOW4
+        FLOW4 --> FLOW5
+        FLOW5 --> FLOW6
+        FLOW6 --> FLOW7
+    end
+    
+    style USER fill:#4285f4,color:#fff
+    style CSQL fill:#0066cc,color:#fff
+    style EXPORT fill:#0066cc,color:#fff
+    style GCS fill:#fbbc04,color:#000
+    style BACKUP fill:#fbbc04,color:#000
+    style CR fill:#ea4335,color:#fff
+    style VERIFY fill:#9c27b0,color:#fff
+    style DLP_JOB fill:#ff9800,color:#fff
+    style DETECT fill:#f44336,color:#fff
+    style ALERT fill:#e91e63,color:#fff
+    style VERIFY_DB fill:#9c27b0,color:#fff
+    style RESTORE fill:#4caf50,color:#fff
+    style DLP_API fill:#34a853,color:#fff
+    style DLP_INSPECT fill:#34a853,color:#fff
+    style MONITOR fill:#9c27b0,color:#fff
+    style MON_DB fill:#0066cc,color:#fff
+    style PS_TOPIC fill:#34a853,color:#fff
+    style PS_SUB fill:#34a853,color:#fff
+

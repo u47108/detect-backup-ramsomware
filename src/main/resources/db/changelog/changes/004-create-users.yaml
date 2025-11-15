@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-users
+      author: detect-backup-ransomware
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: date_of_birth
+                  type: TIMESTAMP
+              - column:
+                  name: address
+                  type: TEXT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_user_email
+            tableName: users
+            columns:
+              - column:
+                  name: email
+        - createIndex:
+            indexName: idx_user_created_at
+            tableName: users
+            columns:
+              - column:
+                  name: created_at
+

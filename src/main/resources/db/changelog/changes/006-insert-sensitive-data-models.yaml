@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-insert-sensitive-data-models
+      author: detect-backup-ransomware
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO sensitive_data_models (data_type, table_name, column_name, detection_query, dlp_info_type, description, active, created_at)
+              VALUES 
+                ('EMAIL', 'users', 'email', 'SELECT email FROM users', 'EMAIL_ADDRESS', 'Detectar si emails de usuarios están encriptados', true, NOW()),
+                ('PHONE', 'users', 'phone', 'SELECT phone FROM users', 'PHONE_NUMBER', 'Detectar si teléfonos de usuarios están encriptados', true, NOW()),
+                ('CREDIT_CARD', 'bank_accounts', 'credit_card_number', 'SELECT credit_card_number FROM bank_accounts', 'CREDIT_CARD_NUMBER', 'Detectar si números de tarjetas están encriptados', true, NOW()),
+                ('BANK_ACCOUNT', 'bank_accounts', 'account_number', 'SELECT account_number FROM bank_accounts', null, 'Detectar si números de cuenta bancaria están encriptados', true, NOW()),
+                ('FINANCIAL_DATA', 'bank_accounts', 'routing_number', 'SELECT routing_number FROM bank_accounts', null, 'Detectar si números de routing están encriptados', true, NOW())
+              ON CONFLICT DO NOTHING;
+

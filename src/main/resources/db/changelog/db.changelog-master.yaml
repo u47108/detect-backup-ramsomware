@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/001-create-schema.yaml
+  - include:
+      file: db/changelog/changes/002-create-backup-records.yaml
+  - include:
+      file: db/changelog/changes/003-create-sensitive-data-models.yaml
+  - include:
+      file: db/changelog/changes/004-create-users.yaml
+  - include:
+      file: db/changelog/changes/005-create-bank-accounts.yaml
+  - include:
+      file: db/changelog/changes/006-insert-sensitive-data-models.yaml
+
