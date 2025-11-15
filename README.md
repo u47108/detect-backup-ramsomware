@@ -169,9 +169,14 @@ deactivate Service
 @enduml
 ```
 
-**Visualización del diagrama PlantUML:**
+**Imagen del diagrama de secuencia:**
+
+![Diagrama de Secuencia](diagrams/sequence.png)
+
+**Alternativas para visualizar:**
 - Puedes visualizar este diagrama usando [PlantUML Online](http://www.plantuml.com/plantuml/uml/) copiando el contenido de [`diagrams/sequence.puml`](diagrams/sequence.puml)
 - O instala PlantUML localmente y genera imágenes desde el archivo `.puml`
+- Ver [`diagrams/README.md`](diagrams/README.md) para más opciones de generación
 
 ### Flujo del Sistema
 
