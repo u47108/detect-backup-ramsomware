@@ -90,14 +90,24 @@ mmdc -i architecture.mmd -o architecture.svg -b transparent
 
 ### Diagrama de Secuencia (PlantUML)
 
-#### Método 1: Herramienta Online (Recomendado)
+#### Método 1: Script Automático (Recomendado)
+
+```bash
+cd diagrams
+chmod +x generate-sequence.sh
+./generate-sequence.sh
+```
+
+El script detectará automáticamente si tienes Docker, PlantUML CLI o Java instalado y usará el método disponible.
+
+#### Método 2: Herramienta Online (Más fácil)
 
 1. Abre http://www.plantuml.com/plantuml/uml/
 2. Copia el contenido de `sequence.puml`
 3. Pega en el editor
 4. Descarga como PNG o SVG
 
-#### Método 2: PlantUML CLI (si está instalado)
+#### Método 3: PlantUML CLI (si está instalado)
 
 ```bash
 # Instalar PlantUML (requiere Java)
@@ -113,7 +123,7 @@ plantuml -tpng sequence.puml
 plantuml -tsvg sequence.puml
 ```
 
-#### Método 3: Docker
+#### Método 4: Docker
 
 ```bash
 cd diagrams
@@ -127,6 +137,18 @@ docker run --rm \
   -v "$(pwd):/data" \
   plantuml/plantuml:latest \
   -tsvg /data/sequence.puml -o /data
+```
+
+#### Método 5: PlantUML JAR
+
+```bash
+# Descargar PlantUML JAR
+cd diagrams
+wget https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+
+# Generar imágenes (requiere Java)
+java -jar plantuml.jar -tpng sequence.puml
+java -jar plantuml.jar -tsvg sequence.puml
 ```
 
 ## 📁 Archivos Disponibles
